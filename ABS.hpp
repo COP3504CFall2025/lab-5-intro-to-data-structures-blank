@@ -1,0 +1,110 @@
+#pragma once
+
+#include <cstddef>
+#include <stdexcept>
+#include "Interfaces.hpp"
+
+// Technically bad, but size_t isn't likely to conflict with any client code.
+using std::size_t;
+
+template<typename T>
+class ABS : public StackInterface<T> {
+public:
+    // Big 5 + Parameterized Constructor
+    ABS() {
+        capacity_ =0;
+        curr_size_ = 0;
+        array_ = nullptr;
+    }
+    explicit ABS(const size_t capacity) {
+        capacity_ = capacity;
+        curr_size_ = capacity;
+        array_ = new T[capacity];
+    }
+    ABS(const ABS& other) {
+        //copy constructor
+        capacity_ = other.getMaxCapacity();
+        curr_size_ = other.getSize();
+        array_ = new T[capacity_];
+        for (int i=0; i<capacity_; ++i) {
+            array_[i] = other.getData()[i];
+        }
+    }
+    ABS& operator=(const ABS& rhs) {
+        //copy assignment operator
+        if (this == rhs) {
+            return *this;
+        }
+        capacity_ = rhs.getMaxCapacity();
+        curr_size_ = rhs.getSize();
+        array_ = new T[capacity_];
+        for (int i=0; i<capacity_; ++i) {
+            // [] dereferences the pointer and gives a value not pointer
+            array_[i] = rhs.getData()[i];
+        }
+        return *this;
+    }
+    ABS(ABS&& other) noexcept {
+        //move constructor
+        capacity_ = other.getMaxCapacity();
+        curr_size_= other.getSize();
+        array_ = other.getData();
+        //do i not have to set things to nullptr??? no setters...
+
+    }
+    ABS& operator=(ABS&& rhs) noexcept {
+        capacity_ = rhs.getMaxCapacity();
+        curr_size_= rhs.getSize();
+        array_ = rhs.getData();
+        //do i return the pointer or the object?
+        return *this;
+    }
+    ~ABS() noexcept override {
+        delete[] array_;
+        array_ = nullptr;
+        capacity_ = 0;
+        curr_size_ = 0;
+    }
+
+    // Get the number of items in the ABS
+    [[nodiscard]] size_t getSize() const noexcept override {
+        return curr_size_;
+    }
+
+    // Get the max size of the ABS
+    [[nodiscard]] size_t getMaxCapacity() const noexcept {
+        return capacity_;
+    }
+
+    // Return underlying data for the stack
+    [[nodiscard]] T* getData() const noexcept {
+        return array_;
+    }
+
+    // Push item onto the stack
+    void push(const T& data) override {
+        if (curr_size_ >= capacity_) {
+            capacity_ *= scale_factor_;
+            delete[] array_;
+            array_ = new T[capacity_];
+        }
+        array_[curr_size_] = data;
+        curr_size_ +=1;
+    }
+
+    T peek() const override {
+        return array_[curr_size_];
+    }
+
+    T pop() override {
+        T temp = array_[curr_size_];
+        curr_size_ -=1;
+        return temp;
+    }
+
+private:
+    size_t capacity_;
+    size_t curr_size_;
+    T* array_;
+    static constexpr size_t scale_factor_ = 2;
+};
