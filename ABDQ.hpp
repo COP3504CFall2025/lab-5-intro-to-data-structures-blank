@@ -18,13 +18,73 @@ private:
 
 public:
     // Big 5
-    ABDQ();
-    explicit ABDQ(std::size_t capacity);
-    ABDQ(const ABDQ& other);
-    ABDQ(ABDQ&& other) noexcept;
-    ABDQ& operator=(const ABDQ& other);
-    ABDQ& operator=(ABDQ&& other) noexcept;
-    ~ABDQ() override;
+    ABDQ() {
+        data_ = nullptr;
+        capacity_ = 0;
+        size_ = 0;
+        front_ = 0;
+        back_ = 0;
+
+    }
+    explicit ABDQ(std::size_t capacity) {
+        data_ = nullptr;
+        capacity_ = capacity;
+        size_ = 0;
+        front_ = 0;
+        back_ = 0;
+    }
+    ABDQ(const ABDQ& other) {
+        capacity_ = other.getCapacity();
+        size_ = other.getSize();
+        data_ = new T[capacity_];
+        front_ = other.getFront();
+        back_ = size_;
+        for (int i=0; i<size_; ++i ) {
+            data_[(front_ + i) % size_] = other.front();
+            front_ = (front_ +1)%size_;
+            other.setFront(front_);
+        }
+
+    }
+    ABDQ(ABDQ&& other) noexcept {
+        capacity_ = other.getCapacity();
+        size_ = other.getSize();
+        data_ = other.getData();
+        front_ = other.getFront();
+        back_ = other.getBack();
+    }
+    ABDQ& operator=(const ABDQ& other) {
+        if (this== other) {
+            return *this;
+        }
+        capacity_ = other.getCapacity();
+        size_ = other.getSize();
+        data_ = new T[capacity_];
+        front_ = other.getFront();
+        back_ = size_;
+        for (int i=0; i<size_; ++i ) {
+            data_[(front_ + i) % size_] = other.front();
+            front_ = (front_ +1)%size_;
+            other.setFront(front_);
+        }
+        return *this;
+    }
+    ABDQ& operator=(ABDQ&& other) noexcept {
+        if (other==this) {
+            return *this;
+        }
+        capacity_ = other.getCapacity();
+        size_ = other.getSize();
+        data_ = other.getData();
+        front_ = other.getFront();
+        back_ = other.getBack();
+        return *this;
+    }
+    ~ABDQ() override {
+        delete[] data_;
+        data_ = nullptr;
+
+    }
 
     // Insertion
     void pushFront(const T& item) override;
@@ -40,5 +100,20 @@ public:
 
     // Getters
     std::size_t getSize() const noexcept override;
+    std::size_t getCapacity() const noexcept;
+    T& getData() const noexcept {
+        return data_;
+    }
+    std::size_t getFront() const noexcept {
+        return front_;
+    }
+    std::size_t getBack() const noexcept {
+        return back_;
+    }
+
+    void setFront(std::size_t index) {
+        front_ = index;
+    }
+
 
 };
